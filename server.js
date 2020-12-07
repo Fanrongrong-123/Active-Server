@@ -21,7 +21,6 @@ var server = http.createServer(function (request, response) {
     console.log('有个傻子发请求过来啦！路径（带查询参数）为：' + pathWithQuery)
 
     if (path === '/sign_in') {
-        response.setHeader('Content-Type', 'text/html; charset=UTF-8')
         const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))
         const array = []
         request.on('data', (chunk) => { //data传给chunk
@@ -33,15 +32,27 @@ var server = http.createServer(function (request, response) {
             const user = userArray.find((user) => user.name === obj.name && user.password === obj.password)
             if (user === undefined) {
                 response.statusCode = 400
-                response.end('name password 不匹配')
+                response.setHeader('Content-Type', 'text/json; charset=UTF-8')
+                response.end(`{"errorCode":531}`)
             } else {
                 response.statusCode = 200
+                response.setHeader('Set-Cookie', 'logined=1; HttpOnly') //HttpOnly 禁止通过前端访问（改）cookie
                 response.end()
             }
         })
 
-    } else if (path === '/home') {
-        //写不出来
+    } else if (path === '/home.html') {
+        const cookie = request.headers['cookie']
+        if (cookie === "logined=1") {
+            const homeHtml = fs.readFileSync('./db/home.html').toString()
+            const string = homeHtml.replace("{{loginStatus}}", "已登录")
+            response.write(string)
+        } else {
+            const homeHtml = fs.readFileSync('./db/home.html').toString()
+            const string = homeHtml.replace("{{loginStatus}}", "未登录")
+            response.write(string)
+        }
+        response.end()
     } else if (path === '/register' && method === 'POST') {
         response.setHeader('Content-Type', 'text/html; charset=UTF-8')
         const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))

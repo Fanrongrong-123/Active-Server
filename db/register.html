@@ -31,7 +31,7 @@
                 data: JSON.stringify({ name, password })
             }).then(() => {
                 alert('注册成功')
-                location.href = '/sign_in.html'
+                window.open('/sign_in.html')
             }, () => { })
         })
     </script>

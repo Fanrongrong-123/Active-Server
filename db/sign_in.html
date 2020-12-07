@@ -29,7 +29,7 @@
                 contentType: 'text/json;charset=UTF-8',
                 data: JSON.stringify({ name, password })
             }).then(() => {
-                location.href = '/home.html'
+                window.open('/home.html')
             }, () => { })
         })
     </script>
