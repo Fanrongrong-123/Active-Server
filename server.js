@@ -20,7 +20,7 @@ var server = http.createServer(function (request, response) {
     /******** 从这里开始看，上面不要看 ************/
     console.log('有个傻子发请求过来啦！路径（带查询参数）为：' + pathWithQuery)
 
-    if (path === '/sign_in.html') {
+    if (path === '/sign_in') {
         response.setHeader('Content-Type', 'text/html; charset=UTF-8')
         const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))
         const array = []
@@ -67,7 +67,7 @@ var server = http.createServer(function (request, response) {
 
     } else {
         response.statusCode = 200
-        const filePath = path === '/' ? '/sign_in.html' : path //默认为登录页sign_in.html
+        const filePath = path === '/' ? '/index.html' : path //默认为登录页sign_in.html
 
         const index = filePath.lastIndexOf('.') //获取最后一个点的下标
         //suffix是后缀
