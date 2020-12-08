@@ -19,6 +19,7 @@ var server = http.createServer(function (request, response) {
 
     /******** 从这里开始看，上面不要看 ************/
     console.log('有个傻子发请求过来啦！路径（带查询参数）为：' + pathWithQuery)
+    const session = JSON.parse(fs.readFileSync('./session.json').toString())
 
     if (path === '/sign_in') {
         const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))
@@ -36,26 +37,31 @@ var server = http.createServer(function (request, response) {
                 response.end(`{"errorCode":531}`)
             } else {
                 response.statusCode = 200
-                response.setHeader('Set-Cookie', `userId=${user.id}; HttpOnly`) //HttpOnly 禁止通过前端访问（改）cookie
+                const random = Math.random()
+                session[random] = { userId: user.id }
+                fs.writeFileSync('./session.json', JSON.stringify(session))
+                response.setHeader('Set-Cookie', `session_id=${random}; HttpOnly`) //HttpOnly 禁止通过前端访问（改）cookie
                 response.end()
             }
         })
 
     } else if (path === '/home.html') {
         const cookie = request.headers['cookie']
-        let userId
+        let sessionId
         try {
-            userId = cookie.split(';').filter(s => s.indexOf('userId=') >= 0)[0].split('=')[1] //取cookie 的value
+            sessionId = cookie.split(';').filter(s => s.indexOf('session_id') >= 0)[0].split('=')[1] //取cookie 的value
 
         } catch (error) { }
-        if (userId) {
+        if (sessionId && session[sessionId]) {
+            const userId = session[sessionId].userId
             const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))
-            const user = userArray.find(user => user.id.toString() === userId)
+            const user = userArray.find(user => user.id === userId)
             const homeHtml = fs.readFileSync('./db/home.html').toString()
             let string
             if (user) {
                 string = homeHtml.replace("{{loginStatus}}", "已登录").replace("{{user.name}}", user.name)
             } else {
+                string = ''
             }
             response.write(string)
         } else {
