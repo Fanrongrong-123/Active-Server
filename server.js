@@ -36,20 +36,31 @@ var server = http.createServer(function (request, response) {
                 response.end(`{"errorCode":531}`)
             } else {
                 response.statusCode = 200
-                response.setHeader('Set-Cookie', 'logined=1; HttpOnly') //HttpOnly 禁止通过前端访问（改）cookie
+                response.setHeader('Set-Cookie', `userId=${user.id}; HttpOnly`) //HttpOnly 禁止通过前端访问（改）cookie
                 response.end()
             }
         })
 
     } else if (path === '/home.html') {
         const cookie = request.headers['cookie']
-        if (cookie === "logined=1") {
+        let userId
+        try {
+            userId = cookie.split(';').filter(s => s.indexOf('userId=') >= 0)[0].split('=')[1] //取cookie 的value
+
+        } catch (error) { }
+        if (userId) {
+            const userArray = JSON.parse(fs.readFileSync('./db/users1.json'))
+            const user = userArray.find(user => user.id.toString() === userId)
             const homeHtml = fs.readFileSync('./db/home.html').toString()
-            const string = homeHtml.replace("{{loginStatus}}", "已登录")
+            let string
+            if (user) {
+                string = homeHtml.replace("{{loginStatus}}", "已登录").replace("{{user.name}}", user.name)
+            } else {
+            }
             response.write(string)
         } else {
             const homeHtml = fs.readFileSync('./db/home.html').toString()
-            const string = homeHtml.replace("{{loginStatus}}", "未登录")
+            const string = homeHtml.replace("{{loginStatus}}", "未登录").replace("{{user.name}}", '')
             response.write(string)
         }
         response.end()
